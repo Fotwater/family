@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Семейное древо</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;700&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#17120d;
+  --bg2:#241b13;
+  --gold:#c49a52;
+  --gold-soft:#e0b56b;
+  --text:#efe1c2;
+  --muted:#b89e71;
+  --line:#5a4320;
+  --card:#2b2015;
+  --shadow:rgba(0,0,0,.65);
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  background:
+    radial-gradient(circle at top, rgba(196,154,82,.16), transparent 45%),
+    linear-gradient(to bottom, #1a140d, #120d08);
+  color:var(--text);
+  font-family:"Cormorant Garamond", serif;
+  overflow-x:hidden;
+  min-height:100vh;
+}
+
+/* Dust */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background-image:
+    radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px);
+  background-size:4px 4px;
+  opacity:.08;
+  pointer-events:none;
+}
+
+header{
+  text-align:center;
+  padding:70px 20px 30px;
+}
+
+header h1{
+  font-family:"Cinzel", serif;
+  font-size:clamp(2.5rem,5vw,4rem);
+  font-weight:600;
+  letter-spacing:.08em;
+  color:var(--gold-soft);
+  text-shadow:0 0 30px rgba(196,154,82,.15);
+}
+
+.subtitle{
+  margin-top:10px;
+  color:var(--muted);
+  letter-spacing:.3em;
+  text-transform:uppercase;
+  font-size:.8rem;
+}
+
+.lamp-glow{
+  position:fixed;
+  top:-200px;
+  left:50%;
+  transform:translateX(-50%);
+  width:700px;
+  height:500px;
+  background:radial-gradient(circle, rgba(255,194,102,.14), transparent 70%);
+  pointer-events:none;
+  z-index:0;
+}
+
+.controls{
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  margin:10px 0 25px;
+  flex-wrap:wrap;
+}
+
+button{
+  background:#2a1d10;
+  border:1px solid #6f5328;
+  color:var(--text);
+  padding:10px 16px;
+  border-radius:999px;
+  cursor:pointer;
+  transition:.25s;
+  font-family:inherit;
+}
+
+button:hover{
+  transform:translateY(-2px);
+  background:#352514;
+  box-shadow:0 0 20px rgba(196,154,82,.15);
+}
+
+.zoom-note{
+  text-align:center;
+  color:var(--muted);
+  margin-bottom:15px;
+  font-size:.9rem;
+}
+
+.viewport{
+  overflow:hidden;
+  width:100%;
+  touch-action:none;
+  cursor:grab;
+}
+
+.viewport:active{
+  cursor:grabbing;
+}
+
+.tree{
+  min-width:1200px;
+  padding:30px 80px 120px;
+  transform-origin:center top;
+  transition:transform .2s ease;
+}
+
+.generation-label{
+  text-align:center;
+  margin:35px 0 25px;
+  color:var(--gold);
+  letter-spacing:.25em;
+  text-transform:uppercase;
+  font-size:.8rem;
+}
+
+.row{
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  gap:40px;
+  flex-wrap:wrap;
+  position:relative;
+}
+
+.couple{
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+}
+
+.heart{
+  color:var(--gold);
+  margin-top:70px;
+  font-size:1.2rem;
+  animation:pulse 3s infinite ease-in-out;
+}
+
+@keyframes pulse{
+  50%{ transform:scale(1.25); opacity:.8; }
+}
+
+.person{
+  width:170px;
+  position:relative;
+  animation:fadeUp .7s ease both;
+}
+
+@keyframes fadeUp{
+  from{
+    opacity:0;
+    transform:translateY(25px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+.card{
+  position:relative;
+  background:linear-gradient(to bottom, #322416, #261a10);
+  border:1px solid #5c4320;
+  border-radius:18px;
+  overflow:hidden;
+  transition:.3s;
+  box-shadow:0 10px 30px var(--shadow);
+}
+
+.card:hover{
+  transform:translateY(-8px) scale(1.02);
+  box-shadow:
+    0 20px 40px rgba(0,0,0,.7),
+    0 0 35px rgba(196,154,82,.18);
+}
+
+.frame{
+  position:absolute;
+  inset:-8px;
+  border:1px solid rgba(196,154,82,.35);
+  border-radius:22px;
+  pointer-events:none;
+}
+
+.photo{
+  aspect-ratio:1/1;
+  background:
+    linear-gradient(145deg, #46311c, #24170c);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  border-bottom:1px solid #5a4320;
+}
+
+.photo img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  filter:sepia(.35) brightness(.9);
+}
+
+.placeholder{
+  opacity:.25;
+  font-size:4rem;
+}
+
+.info{
+  padding:14px;
+  text-align:center;
+}
+
+.name{
+  font-size:1.15rem;
+  line-height:1.2;
+  font-weight:700;
+}
+
+.years{
+  margin-top:6px;
+  color:var(--gold);
+  font-size:.9rem;
+}
+
+.quote{
+  position:absolute;
+  left:50%;
+  bottom:calc(100% + 12px);
+  transform:translateX(-50%);
+  width:220px;
+  background:#1b120a;
+  border:1px solid #6a4f26;
+  border-radius:12px;
+  padding:10px 14px;
+  text-align:center;
+  color:#d9c8a2;
+  opacity:0;
+  pointer-events:none;
+  transition:.25s;
+  font-size:.92rem;
+  box-shadow:0 10px 25px rgba(0,0,0,.6);
+}
+
+.person:hover .quote{
+  opacity:1;
+  transform:translateX(-50%) translateY(-6px);
+}
+
+.connector{
+  height:70px;
+  display:flex;
+  justify-content:center;
+}
+
+footer{
+  text-align:center;
+  padding:50px 20px;
+  color:#7d643a;
+  letter-spacing:.2em;
+}
+
+/* modal */
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.75);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  z-index:999;
+}
+
+.modal.active{
+  display:flex;
+}
+
+.modal-box{
+  width:min(700px, 100%);
+  background:linear-gradient(to bottom, #2d2014, #1e150d);
+  border:1px solid #6a4f26;
+  border-radius:24px;
+  padding:30px;
+  box-shadow:0 20px 60px rgba(0,0,0,.8);
+  position:relative;
+}
+
+.close{
+  position:absolute;
+  right:18px;
+  top:12px;
+  font-size:1.8rem;
+  cursor:pointer;
+  color:var(--gold);
+}
+
+.modal h2{
+  font-family:"Cinzel", serif;
+  margin-bottom:15px;
+  color:var(--gold-soft);
+}
+
+.timeline{
+  margin-top:20px;
+  padding-left:20px;
+}
+
+.timeline li{
+  margin-bottom:10px;
+}
+
+@media(max-width:768px){
+  .tree{
+    min-width:900px;
+    padding-inline:40px;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="lamp-glow"></div>
+
+<header>
+  <h1>Семейное Древо</h1>
+  <div class="subtitle">Архив памяти</div>
+</header>
+
+<div class="controls">
+  <button onclick="zoomIn()">Приблизить</button>
+  <button onclick="zoomOut()">Отдалить</button>
+  <button onclick="resetZoom()">Сброс</button>
+</div>
+
+<div class="viewport" id="viewport">
+<div class="tree" id="tree">
+
+<div class="generation-label">I поколение</div>
+
+<div class="row">
+  <div class="couple">
+
+    <div class="person" onclick="openPerson('ivan')">
+      <div class="quote">Любил играть в Денди</div>
+      <div class="card">
+        <div class="frame"></div>
+        <div class="photo">
+          <img src="photos1/2.png" alt="Геннадий">
+        </div>
+        <div class="info">
+          <div class="name">Геннадий</div>
+          <div class="years">1952</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="heart">♥</div>
+
+    <div class="person" onclick="openPerson('maria')">
+      <div class="quote">Делала офигенную баклажановую икру</div>
+      <div class="card">
+        <div class="frame"></div>
+        <div class="photo">
+          <img src="photos1/1.png" alt="Мадина">
+        </div>
+        <div class="info">
+          <div class="name">Мадина</div>
+          <div class="years">1952</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="connector">
+<svg width="400" height="70">
+<path d="M200 0 V35 H200" stroke="#6a4f26" fill="none"/>
+<path d="M100 35 H300" stroke="#6a4f26" fill="none"/>
+<path d="M200 35 V70" stroke="#6a4f26" fill="none"/>
+</svg>
+</div>
+
+<div class="generation-label">II поколение</div>
+
+<div class="row">
+
+<div class="couple">
+
+<div class="person" onclick="openPerson('alex')">
+  <div class="quote">Обажает перебирать свой жигуль</div>
+  <div class="card">
+    <div class="frame"></div>
+    <div class="photo">
+      <img src="photos1/7.jpg" alt="Андрей">
+    </div>
+    <div class="info">
+      <div class="name">Андрей</div>
+      <div class="years">1969</div>
+    </div>
+  </div>
+</div>
+
+<div class="heart">♥</div>
+
+<div class="person" onclick="openPerson('nina')">
+  <div class="quote">Зачитывается романами</div>
+  <div class="card">
+    <div class="frame"></div>
+    <div class="photo">
+      <img src="photos1/6.jpg" alt="Ира">
+    </div>
+    <div class="info">
+      <div class="name">Ира</div>
+      <div class="years">1976</div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+</div>
+
+<div class="connector">
+<svg width="400" height="70">
+<path d="M200 0 V70" stroke="#6a4f26" fill="none"/>
+</svg>
+</div>
+
+<div class="generation-label">III поколение</div>
+
+<div class="row">
+
+<div class="person" onclick="openPerson('katy')">
+  <div class="quote">Это я, великолепная и неповторимая🌿</div>
+  <div class="card">
+    <div class="frame"></div>
+    <div class="photo">
+      <img src="photos1/10.jpg" alt="Катя">
+    </div>
+    <div class="info">
+      <div class="name">Катя</div>
+      <div class="years">2009</div>
+    </div>
+  </div>
+</div>
+
+<div class="person" onclick="openPerson('dima')">
+  <div class="quote">Это мой любимый младший братишка💓</div>
+  <div class="card">
+    <div class="frame"></div>
+    <div class="photo">
+      <img src="photos1/9.jpg" alt="Дима">
+    </div>
+    <div class="info">
+      <div class="name">Дима</div>
+      <div class="years">2012</div>
+    </div>
+  </div>
+</div>
+
+<div class="person" onclick="openPerson('oleg')">
+  <div class="quote">Это старший братишка, очень крутой🤟</div>
+  <div class="card">
+    <div class="frame"></div>
+    <div class="photo">
+      <img src="photos1/4.jpg" alt="Олег">
+    </div>
+    <div class="info">
+      <div class="name">Олег</div>
+      <div class="years">1999</div>
+    </div>
+  </div>
+</div>
+
+<div class="person" onclick="openPerson('sergey')">
+  <div class="quote">Это самый старый братик🙊</div>
+  <div class="card">
+    <div class="frame"></div>
+    <div class="photo">
+      <img src="photos1/11.jpg" alt="Сергей">
+    </div>
+    <div class="info">
+      <div class="name">Сергей</div>
+      <div class="years">1997</div>
+    </div>
+  </div>
+</div>
+
+<div class="person" onclick="openPerson('marina')">
+  <div class="quote">Самая старая систер💁‍♀️</div>
+  <div class="card">
+    <div class="frame"></div>
+    <div class="photo">
+      <img src="photos1/5.jpg" alt="Марина">
+    </div>
+    <div class="info">
+      <div class="name">Марина</div>
+      <div class="years">2002</div>
+    </div>
+  </div>
+</div>
+
+<div class="person" onclick="openPerson('dasha')">
+  <div class="quote">Старшая сестричка🖤</div>
+  <div class="card">
+    <div class="frame"></div>
+    <div class="photo">
+      <img src="photos1/8.jpg" alt="Даша">
+    </div>
+    <div class="info">
+      <div class="name">Даша</div>
+      <div class="years">2006</div>
+    </div>
+  </div>
+</div>
+
+<div class="person" onclick="openPerson('vika')">
+  <div class="quote">Младшая сестренка👄</div>
+  <div class="card">
+    <div class="frame"></div>
+    <div class="photo">
+      <img src="photos1/3.jpg" alt="Вика">
+    </div>
+    <div class="info">
+      <div class="name">Вика</div>
+      <div class="years">2016.</div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+<footer>
+✦ Семейная память живет, пока её рассказывают ✦
+</footer>
+
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <div class="close" onclick="closeModal()">×</div>
+    <h2 id="modalTitle"></h2>
+    <p id="modalText"></p>
+
+    <ul class="timeline" id="timeline"></ul>
+  </div>
+</div>
+
+<script>
+
+let scale = 1;
+const tree = document.getElementById('tree');
+
+function zoomIn(){
+  scale += 0.1;
+  applyZoom();
+}
+
+function zoomOut(){
+  scale = Math.max(0.5, scale - 0.1);
+  applyZoom();
+}
+
+function resetZoom(){
+  scale = 1;
+  applyZoom();
+}
+
+function applyZoom(){
+  tree.style.transform = `scale(${scale})`;
+}
+
+document.addEventListener('wheel', (e)=>{
+  if(e.deltaY < 0){
+    scale += 0.05;
+  }else{
+    scale -= 0.05;
+  }
+
+  scale = Math.min(Math.max(scale, 0.5), 2);
+  applyZoom();
+});
+
+const viewport = document.getElementById('viewport');
+
+let isDragging = false;
+let startX, startY, scrollLeft, scrollTop;
+
+viewport.addEventListener('mousedown', (e)=>{
+  isDragging = true;
+  startX = e.pageX - viewport.offsetLeft;
+  startY = e.pageY - viewport.offsetTop;
+  scrollLeft = viewport.scrollLeft;
+  scrollTop = viewport.scrollTop;
+});
+
+viewport.addEventListener('mouseleave', ()=> isDragging = false);
+viewport.addEventListener('mouseup', ()=> isDragging = false);
+
+viewport.addEventListener('mousemove', (e)=>{
+  if(!isDragging) return;
+
+  e.preventDefault();
+
+  const x = e.pageX - viewport.offsetLeft;
+  const y = e.pageY - viewport.offsetTop;
+
+  const walkX = (x - startX) * 1.2;
+  const walkY = (y - startY) * 1.2;
+
+  viewport.scrollLeft = scrollLeft - walkX;
+  viewport.scrollTop = scrollTop - walkY;
+});
+
+const stories = {
+  ivan: {
+    title:'Штепликарь Геннадий Семёнович',
+    text:'Молчаливый мастер. В доме почти не было вещи, которую он не смог бы починить.',
+    timeline:[
+      'Вообще он военным был',
+      'И лысым',
+      'Но не суть. Я все равно его люблю'
+    ]
+  },
+
+  maria:{
+    title:'Бикчентаева Мадина',
+    text:'Обажала парики. Черные. И платки',
+    timeline:[
+      'Куча детей',
+      'А внуков еще больше',
+      'В общем, богатая'
+    ]
+  },
+
+  alex:{
+    title:'Коростылёв Андрей Вячеславович',
+    text:'Классический батя. Ну прям, всем батям с него пример брать',
+    timeline:[
+      'Лбит жигуль',
+      'Ну и пиво',
+      'Ну и жигуль. Еще'
+    ]
+  },
+
+  nina:{
+    title:'Юдина Ирина Геннадьевна',
+    text:'Семеро детей. Омагад',
+    timeline:[
+      'И вы не в шоке?',
+      'Я в шоке',
+      'Хотя я одна из них'
+    ]
+  },
+
+  katy:{
+    title:'Коростылева Екатерина Андреевна',
+    text:'Вы меня знаете. И я вас тоже💀',
+    timeline:[
+      'Как вам мой сайт',
+      'Я же крутая',
+      'Раз сделала такое чудо'
+    ]
+  },
+
+  oleg:{
+    title:'Юдин Олег Александрович',
+    text:'Самое полезное знакомство в вашей жизни',
+    timeline:[
+      'Я серьзно',
+      'Если не знакомы',
+      'Срочно знакомьтесь'
+    ]
+  },
+
+  sergey:{
+    title:'Юдин Сергей Александрович',
+    text:'Всем качкам качок',
+    timeline:[
+      'Ну и волк',
+      'Не знакю почему. Он так решил',
+      'На белазе гонять умеет'
+    ]
+  },
+
+  marina:{
+    title:'Юдина Марина Александровна',
+    text:'Соседка моя',
+    timeline:[
+      'Рядом живем',
+      'Правда, здорово?',
+      '"Неа. Или да. Вроде да"'
+    ]
+  },
+
+  dasha:{
+    title:'Юдина Дарья Александровна',
+    text:'В Ростове живет',
+    timeline:[
+      'Крутая',
+      'Очень',
+      'Если вы думаете, что круче, вы ошибаетесь'
+    ]
+  },
+
+  dima:{
+    title:'Коростылев Дмитрий Андреевич',
+    text:'Краш школы',
+    timeline:[
+      'По его словам',
+      'Вроде да',
+      'Не рискну проверять'
+    ]
+  },
+
+  vika:{
+    title:'Коростылева Виктория Андреевна',
+    text:'Вечно спутанные волосы. Но все равно красотка',
+    timeline:[
+      'Очень милая',
+      'За любой движ',
+      'Вырастет, наведет шума'
+    ]
+  },
+};
+
+function openPerson(id){
+  const modal = document.getElementById('modal');
+  const data = stories[id];
+
+  document.getElementById('modalTitle').textContent = data.title;
+  document.getElementById('modalText').textContent = data.text;
+
+  const timeline = document.getElementById('timeline');
+  timeline.innerHTML = '';
+
+  data.timeline.forEach(item=>{
+    const li = document.createElement('li');
+    li.textContent = item;
+    timeline.appendChild(li);
+  });
+
+  modal.classList.add('active');
+}
+
+function closeModal(){
+  document.getElementById('modal').classList.remove('active');
+}
+
+document.getElementById('modal').addEventListener('click', function(e){
+  if(e.target === this){
+    closeModal();
+  }
+});
+
+</script>
+
+</body>
+</html>
