@@ -338,6 +338,29 @@ footer{
   margin-bottom:10px;
 }
 
+/* кнопка перехода на страницу биографии */
+
+.bio-btn{
+  display:inline-block;
+  margin-top:24px;
+  padding:10px 18px;
+  border:1px solid #6a4f26;
+  border-radius:999px;
+  background:#2a1d10;
+  color:var(--gold-soft);
+  text-decoration:none;
+  font-family:inherit;
+  font-size:.95rem;
+  letter-spacing:.05em;
+  transition:.25s;
+}
+
+.bio-btn:hover{
+  background:#352514;
+  box-shadow:0 0 20px rgba(196,154,82,.2);
+  transform:translateY(-2px);
+}
+
 @media(max-width:768px){
   .tree{
     min-width:900px;
@@ -574,6 +597,8 @@ footer{
     <p id="modalText"></p>
 
     <ul class="timeline" id="timeline"></ul>
+
+    <a id="bioLink" class="bio-btn" href="#" target="_blank">Полная биография →</a>
   </div>
 </div>
 
@@ -651,7 +676,8 @@ const stories = {
       'Вообще он военным был',
       'И лысым',
       'Но не суть. Я все равно его люблю'
-    ]
+    ],
+    link:'bios/ivan.html'
   },
 
   maria:{
@@ -661,7 +687,8 @@ const stories = {
       'Куча детей',
       'А внуков еще больше',
       'В общем, богатая'
-    ]
+    ],
+    link:'bios/maria.html'
   },
 
   alex:{
@@ -671,7 +698,8 @@ const stories = {
       'Любит жигуль',
       'Ну и пиво',
       'Ну и жигуль. Еще'
-    ]
+    ],
+    link:'bios/alex.html'
   },
 
   nina:{
@@ -681,7 +709,8 @@ const stories = {
       'И вы не в шоке?',
       'Я в шоке',
       'Хотя я одна из них'
-    ]
+    ],
+    link:'bios/nina.html'
   },
 
   katy:{
@@ -691,7 +720,8 @@ const stories = {
       'Как вам мой сайт',
       'Я же крутая',
       'Раз сделала такое чудо'
-    ]
+    ],
+    link:'bios/katy.html'
   },
 
   oleg:{
@@ -701,7 +731,8 @@ const stories = {
       'Я серьзно',
       'Если не знакомы',
       'Срочно знакомьтесь'
-    ]
+    ],
+    link:'bios/oleg.html'
   },
 
   sergey:{
@@ -711,7 +742,8 @@ const stories = {
       'Ну и волк',
       'Не знаю почему. Он так решил',
       'На белазе гонять умеет'
-    ]
+    ],
+    link:'bios/sergey.html'
   },
 
   marina:{
@@ -721,7 +753,8 @@ const stories = {
       'Рядом живем',
       'Правда, здорово?',
       '"Неа. Или да. Вроде да"'
-    ]
+    ],
+    link:'bios/marina.html'
   },
 
   dasha:{
@@ -731,7 +764,8 @@ const stories = {
       'Крутая',
       'Очень',
       'Если вы думаете, что круче, вы ошибаетесь'
-    ]
+    ],
+    link:'bios/dasha.html'
   },
 
   dima:{
@@ -741,7 +775,8 @@ const stories = {
       'По его словам',
       'Вроде да',
       'Не рискну проверять'
-    ]
+    ],
+    link:'bios/dima.html'
   },
 
   vika:{
@@ -751,7 +786,8 @@ const stories = {
       'Очень милая',
       'За любой движ',
       'Вырастет, наведет шума'
-    ]
+    ],
+    link:'bios/vika.html'
   },
 };
 
@@ -770,6 +806,14 @@ function openPerson(id){
     li.textContent = item;
     timeline.appendChild(li);
   });
+
+  const bioBtn = document.getElementById('bioLink');
+  if(data.link){
+    bioBtn.href = data.link;
+    bioBtn.style.display = 'inline-block';
+  }else{
+    bioBtn.style.display = 'none';
+  }
 
   modal.classList.add('active');
 }
